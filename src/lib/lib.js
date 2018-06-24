@@ -35,10 +35,10 @@ libHandler = (function () {
             return library.exists(config) ? config.mongoConnectionString : process.env['MONGO_CONNECTION_STRING'];
         },
         port: function(){
-            return process.env.PORT || 1337;
+            return process.env.PORT || 1338;
         },
         allowedOrigins: function(){
-            return process.env['ALLOWED_ORIGINS'] || 'http://192.168.1.68:3000'
+            return process.env['ALLOWED_ORIGINS'] || '*'
         }
     }
 })();
