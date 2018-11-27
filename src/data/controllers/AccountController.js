@@ -6,15 +6,27 @@ accountHandler = (function () {
         var self = this;
 
         self.registerUser = function(userName, password, email, callback){
-            bcrypt.hash(password, saltRounds, function(err, hash) {
-                var user = userCtrl.newUser(userName, hash, email);
-                userCtrl.createUser(user, callback);
-              });
+            userCtrl.getUserByEmail(email, function (result) {
+                if(result){
+                    lib.handleResult({'result': 'failure', 'message': 'User already exists for this email address.'}, callback);
+                } else{
+					userCtrl.getUserByUserName(userName, function(result){
+						if(result){
+							lib.handleResult({'result': 'failure', 'message': 'Username already exists. Please choose another.'}, callback);
+						} else{
+							bcrypt.hash(password, saltRounds, function(err, hash) {
+								var user = userCtrl.newUser(userName, hash, email);
+								userCtrl.createUser(user, callback);
+							});
+						}
+					});
+                }
+            });
         };
 
         self.login = function(email, password, callback){
             userCtrl.getUserByEmail(email, function (result) {
-                if(lib.exists(result)){
+                if(result){
                     var user = result;
                     bcrypt.compare(password, user.password, function (err, res) {
                         if (res === true) {

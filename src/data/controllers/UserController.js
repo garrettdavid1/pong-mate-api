@@ -24,6 +24,12 @@ userHandler = (function () {
             });
         };
 
+        self.getUserByUserName = function(userName, callback){
+            db.get('User', {'userName': userName}, null, function(result){
+                lib.handleResult(result[0], callback);
+            })
+        }
+
         self.createUser = function(user, callback){
             db.add('User', user, function(result){
                 var user = result.ops[0];
@@ -56,6 +62,9 @@ userHandler = (function () {
         },
         getUserByEmail: function(email, callback){
             return userController.getUserByEmail(email, callback);
+        },
+        getUserByUserName: function(userName, callback){
+            return userController.getUserByUserName(userName, callback);
         },
         getUser: function(userId, callback){
             return userController.getUser(userId, callback);
