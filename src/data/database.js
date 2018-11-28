@@ -23,7 +23,7 @@ var database = (function () {
                 console.log("Connected successfully to server");
 
                 self.db = client.db(dbName);
-                if(callback !== undefined) callback(self.db);
+                if(callback) callback(self.db);
             });
         }
 

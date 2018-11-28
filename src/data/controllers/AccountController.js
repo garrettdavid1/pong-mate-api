@@ -8,11 +8,11 @@ accountHandler = (function () {
         self.registerUser = function(userName, password, email, callback){
             userCtrl.getUserByEmail(email, function (result) {
                 if(result){
-                    lib.handleResult({'result': 'failure', 'message': 'User already exists for this email address.'}, callback);
+                    lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'User already exists for this email address.'}, callback);
                 } else{
 					userCtrl.getUserByUserName(userName, function(result){
 						if(result){
-							lib.handleResult({'result': 'failure', 'message': 'Username already exists. Please choose another.'}, callback);
+							lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'Username already exists. Please choose another.'}, callback);
 						} else{
 							bcrypt.hash(password, saltRounds, function(err, hash) {
 								var user = userCtrl.newUser(userName, hash, email);
@@ -30,13 +30,13 @@ accountHandler = (function () {
                     var user = result;
                     bcrypt.compare(password, user.password, function (err, res) {
                         if (res === true) {
-                            lib.handleResult({'result': 'success', 'user': {'userName': user.userName, 'userId': user._id}}, callback);
+							sessionCtrl.createSession(user, callback);
                         } else {
-                            lib.handleResult({ 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
+                            lib.handleResult({'statusCode': 403, 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
                         }
                     });
                 }else{
-                    lib.handleResult({ 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
+                    lib.handleResult({'statusCode': 403, 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
                 }
                 
             });

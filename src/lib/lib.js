@@ -14,6 +14,11 @@ libHandler = (function () {
             }
         }
 
+        self.handleResponse = function(obj, callback){
+            if(obj.statusCode){
+                
+            }
+        }
     }
 
     var library;

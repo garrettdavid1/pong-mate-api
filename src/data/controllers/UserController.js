@@ -13,7 +13,7 @@ userHandler = (function () {
         }
 
         self.getUser = function(userId, callback){
-            db.get('User', {'userId': userId}, null, function(result){
+            db.get('User', {'_id': safeObjectId(userId)}, null, function(result){
                 lib.handleResult(result[0], callback);
             });
         };
@@ -33,10 +33,10 @@ userHandler = (function () {
         self.createUser = function(user, callback){
             db.add('User', user, function(result){
                 var user = result.ops[0];
-                if(lib.exists(user)){
-                    lib.handleResult({'result': 'success', 'user': {'userName': user.userName, 'userId': user._id}}, callback);
+                if(user){
+                    lib.handleResult({'statusCode': 200, 'result': 'success', 'user': {'userName': user.userName, 'userId': user._id}}, callback);
                 }else{
-                    lib.handleResult({ 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
+                    lib.handleResult({'statusCode': 403, 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
                 }
             });
         };

@@ -14,6 +14,7 @@ try{
     self.userCtrl = require('./data/controllers/UserController.js');
     self.accountCtrl = require('./data/controllers/AccountController.js');
     self.sessionCtrl = require('./data/controllers/SessionController.js');
+    self.tokenHandler = require('./util/Token.js');
     self.lib = require('./lib/lib.js');
     self.db = require('./data/database.js');
     self.db.connect((config !== undefined && config !== null) ? config.devDbName : 'PongMate', initControllers());
@@ -21,10 +22,13 @@ try{
 
 
     function initControllers(){
-        lib.init();
-        userCtrl.init();
-        accountCtrl.init();
+        self.lib.init();
+        self.sessionCtrl.init(config);
+        self.userCtrl.init();
+        self.accountCtrl.init();
+        self.tokenHandler.init();
     }
+
     return {
         lib: function(){
             return self.lib;
@@ -38,11 +42,14 @@ try{
         sessionCtrl: function(){
             return self.sessionCtrl;
         },
+        tokenHandler: function(){
+            return self.tokenHandler;
+        },
         db: function(){
             return self.db;
         },
-        safeObjectId: function(){
-            return self.safeObjectId;
+        safeObjectId: function(id){
+            return self.safeObjectId(id);
         }
     }
 })();
@@ -66,11 +73,6 @@ app.get('/', function(req, res, next){
 app.post('/register', function(req, res, next){
     accountCtrl.registerUser(req.body.userName, req.body.password, req.body.email, function(result){
         res.send(JSON.stringify(result));
-        // if(lib.exists(result.user)){
-        //     res.send(JSON.stringify({'result': 'success'}));
-        // } else{
-        //     res.send(JSON.stringify({'result': 'failure'}));
-        // }
     });
 });
 
@@ -79,6 +81,15 @@ app.post('/login', function(req, res, next){
         res.send(JSON.stringify(result));
     });
 });
+
+
+app.get('/isTokenValid', function(req, res, next){
+    tokenHandler.isTokenValid(req.headers.authorization, config.sessionSecret, function(result){
+        res.send(JSON.stringify(result));
+    })
+});
+
+/*::::::::::::::::::: End Routes ::::::::::::::::::*/
 
 var server = app.listen(lib.port(), function(){
     var host = server.address().address;

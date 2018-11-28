@@ -1,39 +1,47 @@
-var bcrypt = require('bcrypt');
-const saltRounds = 10;
-
 sessionHandler = (function () {
-    var SessionController = function () {
+    var SessionController = function (config) {
         var self = this;
+        self.config = config;
         self.numOfHoursValid = 24
 
-        newSession = function(username, token){
-            var now = new Date();
+        newSession = function(userName, userId, token, dateTime){
+            const createDateTimeUtc = dateTime.toUTCString();
+            const expireDateTimeUtc = new Date(dateTime.setHours(dateTime.getHours() + self.numOfHoursValid)).toUTCString();
             return {
-                'createDateTimeUTC': new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())),
-                'expireDateTimeUTC': new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + self.numOfHoursValid, now.getMinutes(), now.getSeconds(), now.getMilliseconds())),
-                username: username,
-                token: token
+                'createDateTimeUtc': createDateTimeUtc,
+                'expireDateTimeUtc': expireDateTimeUtc,
+                'userName': userName,
+                'userId': userId,
+                'token': token
             };
         }
 
-        self.createSession = function(session, callback){
-            db.add('Session', session, function(result){
-                var session = result.ops[0];
-                if(lib.exists(session)){
-                    lib.handleResult({'result': 'success', 'session': session}, callback);
-                }else{
-                    lib.handleResult({ 'result': 'failure', 'message': 'Failed to create session.' }, callback);
-                }
-            });
+        self.createSession = function(user, callback){
+            if(user){
+                const now = new Date();
+                const token = tokenHandler.generateToken(user, now.toUTCString(), self.config.sessionSecret);
+                const session = newSession(user.userName, user._id.toString(), token, now)
+
+                db.add('ApiSession', session, function(result){
+                    var sessionResult = result.ops[0];
+                    if(lib.exists(sessionResult)){
+                        lib.handleResult({'statusCode': 200, 'result': 'success', 'token': sessionResult.token}, callback);
+                    }else{
+                        lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'Failed to create session.' }, callback);
+                    }
+                });
+            } else{
+                lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'User could not be retrieved from database.' }, callback);
+            }
         }
 
         self.getSession = function(token, callback){
-            db.get('Session', {'token': token}, null, function(result){
+            db.get('ApiSession', {'token': token}, null, function(result){ 
                 var session = result[0];
                 if(lib.exists(session)){
                     lib.handleResult(result[0], callback);
                 } else{
-                    lib.handleResult({ 'result': 'failure', 'message': 'Invalid session.' }, callback);
+                    lib.handleResult(null, callback);
                 }
             });
         };
@@ -42,8 +50,8 @@ sessionHandler = (function () {
     var sessionController;
 
     return {
-        init: function(){
-            sessionController = new SessionController();
+        init: function(config){
+            sessionController = new SessionController(config);
         },
         createSession: function(session, callback){
             return sessionController.createSession(session, callback);
