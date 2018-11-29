@@ -25,13 +25,13 @@ sessionHandler = (function () {
                 db.add('ApiSession', session, function(result){
                     var sessionResult = result.ops[0];
                     if(lib.exists(sessionResult)){
-                        lib.handleResult({'statusCode': 200, 'result': 'success', 'token': sessionResult.token}, callback);
+                        lib.handleResult({'statusCode': 200, 'token': sessionResult.token}, callback);
                     }else{
-                        lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'Failed to create session.' }, callback);
+                        lib.handleResult({'statusCode': 400, 'error': 'Session could not be created.' }, callback);
                     }
                 });
             } else{
-                lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'User could not be retrieved from database.' }, callback);
+                lib.handleResult({'statusCode': 400, 'error': 'Session could not be created.' }, callback);
             }
         }
 

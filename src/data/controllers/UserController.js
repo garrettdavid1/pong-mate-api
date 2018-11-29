@@ -34,9 +34,9 @@ userHandler = (function () {
             db.add('User', user, function(result){
                 var user = result.ops[0];
                 if(user){
-                    lib.handleResult({'statusCode': 200, 'result': 'success', 'user': {'userName': user.userName, 'userId': user._id}}, callback);
+                    lib.handleResult({'statusCode': 200, 'user': {'userName': user.userName, 'userId': user._id}}, callback);
                 }else{
-                    lib.handleResult({'statusCode': 403, 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
+                    lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
                 }
             });
         };

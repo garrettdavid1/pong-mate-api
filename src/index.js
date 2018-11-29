@@ -72,21 +72,14 @@ app.get('/', function(req, res, next){
 /*::::::::::::::::::::: Routes ::::::::::::::::::::*/
 app.post('/register', function(req, res, next){
     accountCtrl.registerUser(req.body.userName, req.body.password, req.body.email, function(result){
-        res.send(JSON.stringify(result));
+        lib.handleResponse(result, res);
     });
 });
 
 app.post('/login', function(req, res, next){
     accountCtrl.login(req.body.email, req.body.password, function(result){
-        res.send(JSON.stringify(result));
+        lib.handleResponse(result, res);
     });
-});
-
-
-app.get('/isTokenValid', function(req, res, next){
-    tokenHandler.isTokenValid(req.headers.authorization, config.sessionSecret, function(result){
-        res.send(JSON.stringify(result));
-    })
 });
 
 /*::::::::::::::::::: End Routes ::::::::::::::::::*/

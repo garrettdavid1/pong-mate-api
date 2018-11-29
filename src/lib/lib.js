@@ -7,16 +7,20 @@ libHandler = (function () {
         };
 
         self.handleResult = function(obj, callback){
-            if(self.exists(callback)){
+            if(callback){
                 callback(obj);
             } else{
                 return obj;
             }
         }
 
-        self.handleResponse = function(obj, callback){
+        self.handleResponse = function(obj, res){
             if(obj.statusCode){
-                
+                res.status(obj.statusCode);
+                delete obj.statusCode;
+                res.send(JSON.stringify({'data': obj}));
+            } else{
+                res.send(JSON.stringify({'data': obj}));
             }
         }
     }
@@ -32,6 +36,9 @@ libHandler = (function () {
         },
         handleResult: function(obj, callback){
             return library.handleResult(obj, callback);
+        },
+        handleResponse: function(obj, res){
+            library.handleResponse(obj, res);
         },
         sessionSecret: function(config){
             return library.exists(config) ? config.sessionSecret : process.env['SESSION_SECRET'];

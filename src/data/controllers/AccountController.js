@@ -8,11 +8,11 @@ accountHandler = (function () {
         self.registerUser = function(userName, password, email, callback){
             userCtrl.getUserByEmail(email, function (result) {
                 if(result){
-                    lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'User already exists for this email address.'}, callback);
+                    lib.handleResult({'statusCode': 400, 'error': 'User already exists for this email address.'}, callback);
                 } else{
 					userCtrl.getUserByUserName(userName, function(result){
 						if(result){
-							lib.handleResult({'statusCode': 400, 'result': 'failure', 'message': 'Username already exists. Please choose another.'}, callback);
+							lib.handleResult({'statusCode': 400, 'error': 'Username already exists. Please choose another.'}, callback);
 						} else{
 							bcrypt.hash(password, saltRounds, function(err, hash) {
 								var user = userCtrl.newUser(userName, hash, email);
@@ -32,11 +32,11 @@ accountHandler = (function () {
                         if (res === true) {
 							sessionCtrl.createSession(user, callback);
                         } else {
-                            lib.handleResult({'statusCode': 403, 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
+                            lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
                         }
                     });
                 }else{
-                    lib.handleResult({'statusCode': 403, 'result': 'failure', 'message': 'Incorrect email or password.' }, callback);
+                    lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
                 }
                 
             });
