@@ -23,6 +23,10 @@ libHandler = (function () {
                 res.send(JSON.stringify({'data': obj}));
             }
         }
+
+        self.toUtc = function(dateTime){
+            return new Date(Date.UTC(dateTime.getUTCFullYear(), dateTime.getUTCMonth(), dateTime.getUTCDate(), dateTime.getUTCHours(), dateTime.getMinutes(), dateTime.getSeconds(), dateTime.getMilliseconds()))
+        }
     }
 
     var library;
@@ -51,6 +55,9 @@ libHandler = (function () {
         },
         allowedOrigins: function(){
             return process.env['ALLOWED_ORIGINS'] || '*'
+        },
+        toUtc: function(dateTime){
+            return library.toUtc(dateTime);
         }
     }
 })();

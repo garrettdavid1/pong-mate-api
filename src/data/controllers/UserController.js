@@ -8,7 +8,7 @@ userHandler = (function () {
                 'userName': userName,
                 'password': password,
                 'email': email,
-                'createDateTimeUTC': new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()))
+                'createDateTimeUTC': lib.toUtc(now)
             };
         }
 

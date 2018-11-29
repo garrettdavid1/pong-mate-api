@@ -5,8 +5,9 @@ sessionHandler = (function () {
         self.numOfHoursValid = 24
 
         newSession = function(userName, userId, token, dateTime){
-            const createDateTimeUtc = dateTime.toUTCString();
-            const expireDateTimeUtc = new Date(dateTime.setHours(dateTime.getHours() + self.numOfHoursValid)).toUTCString();
+            const createDateTimeUtc = lib.toUtc(dateTime);
+            dateTime.setHours(dateTime.getHours() + self.numOfHoursValid)
+            const expireDateTimeUtc = lib.toUtc(dateTime);
             return {
                 'createDateTimeUtc': createDateTimeUtc,
                 'expireDateTimeUtc': expireDateTimeUtc,
