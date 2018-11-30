@@ -82,6 +82,12 @@ app.post('/login', function(req, res, next){
     });
 });
 
+app.get('/logout', function(req, res, next){
+    accountCtrl.logout(req.headers.authorization, function(result){
+        lib.handleResponse(result, res);
+    });
+});
+
 /*::::::::::::::::::: End Routes ::::::::::::::::::*/
 
 var server = app.listen(lib.port(), function(){

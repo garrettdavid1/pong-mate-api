@@ -41,6 +41,19 @@ accountHandler = (function () {
                 
             });
         }
+
+        self.logout = function(token, callback){
+            if(token.indexOf('bearer ') === 0){
+                token = token.substring(7)
+                sessionCtrl.getSession(token, function(session){
+                    sessionCtrl.deleteSession(session._id, function(result){
+                        lib.handleResult({'statusCode': 200, 'message': 'Successfully logged out.'}, callback);
+                    });
+                })
+            } else{
+                lib.handleResult({'statusCode': 400, 'error': 'Malformed authorization token.'}, callback);
+            }
+        }
     }
 
     var accountController;
@@ -54,6 +67,9 @@ accountHandler = (function () {
         },
         login: function(email, password, callback){
             return accountController.login(email, password, callback);
+        },
+        logout: function(token, callback){
+            return accountController.logout(token, callback);
         }
     }
 })();

@@ -42,13 +42,13 @@ userHandler = (function () {
         };
 
         self.updateUser = function(userId, updateObj, callback){
-             db.update('User', {'userId': userId}, updateObj, function(result){
+             db.update('User', {'_id': safeObjectId(userId)}, updateObj, function(result){
                  lib.handleResult(result, callback);
              })
         };
 
         self.deleteUser = function(userId, callback){
-            db.delete('User', {'userId': userId}, function(result){
+            db.delete('User', {'_id': safeObjectId(userId)}, function(result){
                 lib.handleResult(result, callback);
             })
         };

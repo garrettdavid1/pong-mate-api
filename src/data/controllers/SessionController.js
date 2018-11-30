@@ -23,14 +23,19 @@ sessionHandler = (function () {
                 const token = tokenHandler.generateToken(user, now.toUTCString(), self.config.sessionSecret);
                 const session = newSession(user.userName, user._id.toString(), token, now)
 
-                db.add('ApiSession', session, function(result){
-                    var sessionResult = result.ops[0];
-                    if(lib.exists(sessionResult)){
-                        lib.handleResult({'statusCode': 200, 'token': sessionResult.token}, callback);
-                    }else{
-                        lib.handleResult({'statusCode': 400, 'error': 'Session could not be created.' }, callback);
-                    }
-                });
+
+                let newUser = Object.assign({}, user);
+                newUser.lastLoginDateTimeUtc = lib.toUtc(now);
+                userCtrl.updateUser(user._id.toString(), newUser, function(){
+                    db.add('ApiSession', session, function(result){
+                        var sessionResult = result.ops[0];
+                        if(lib.exists(sessionResult)){
+                            lib.handleResult({'statusCode': 200, 'token': sessionResult.token}, callback);
+                        }else{
+                            lib.handleResult({'statusCode': 400, 'error': 'Session could not be created.' }, callback);
+                        }
+                    });
+                })
             } else{
                 lib.handleResult({'statusCode': 400, 'error': 'Session could not be created.' }, callback);
             }
@@ -46,6 +51,12 @@ sessionHandler = (function () {
                 }
             });
         };
+
+        self.deleteSession = function(sessionId, callback){
+            db.delete('ApiSession', {'_id': safeObjectId(sessionId)}, function(result){
+                lib.handleResult(result, callback);
+            })
+        }
     }
 
     var sessionController;
@@ -60,6 +71,9 @@ sessionHandler = (function () {
         getSession: function(token, callback){
             return sessionController.getSession(token, callback);
         },
+        deleteSession: function(sessionId, callback){
+            return sessionController.deleteSession(sessionId, callback);
+        }
     }
 })();
 
