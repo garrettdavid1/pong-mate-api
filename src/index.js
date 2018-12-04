@@ -15,6 +15,7 @@ try{
     self.accountCtrl = require('./data/controllers/AccountController.js');
     self.sessionCtrl = require('./data/controllers/SessionController.js');
     self.tokenHandler = require('./util/Token.js');
+    self.emailHandler = require('./util/Email.js');
     self.lib = require('./lib/lib.js');
     self.db = require('./data/database.js');
     self.db.connect((config !== undefined && config !== null) ? config.devDbName : 'PongMate', initControllers());
@@ -27,6 +28,7 @@ try{
         self.userCtrl.init();
         self.accountCtrl.init();
         self.tokenHandler.init();
+        self.emailHandler.init();
     }
 
     return {
@@ -44,6 +46,9 @@ try{
         },
         tokenHandler: function(){
             return self.tokenHandler;
+        },
+        emailHandler: function(){
+            return self.emailHandler;
         },
         db: function(){
             return self.db;
@@ -87,6 +92,12 @@ app.get('/logout', function(req, res, next){
         lib.handleResponse(result, res);
     });
 });
+
+app.get('/recoverPassword', function(req, res, next){
+    accountCtrl.recoverPassword(req.body.email, function(result){
+        lib.handleResponse(result, res);
+    })
+})
 
 /*::::::::::::::::::: End Routes ::::::::::::::::::*/
 

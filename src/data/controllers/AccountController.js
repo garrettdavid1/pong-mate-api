@@ -54,6 +54,10 @@ accountHandler = (function () {
                 lib.handleResult({'statusCode': 400, 'error': 'Malformed authorization token.'}, callback);
             }
         }
+
+        self.recoverPassword = function(recipientEmail, callback){
+            emailHandler.send(recipientEmail, 'recoverPassword', callback);
+        }
     }
 
     var accountController;
@@ -70,6 +74,9 @@ accountHandler = (function () {
         },
         logout: function(token, callback){
             return accountController.logout(token, callback);
+        },
+        recoverPassword: function(recipientEmail, callback){
+            return accountController.recoverPassword(recipientEmail, callback);
         }
     }
 })();
