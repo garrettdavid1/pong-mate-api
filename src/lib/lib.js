@@ -27,6 +27,13 @@ libHandler = (function () {
         self.toUtc = function(dateTime){
             return new Date(Date.UTC(dateTime.getUTCFullYear(), dateTime.getUTCMonth(), dateTime.getUTCDate(), dateTime.getUTCHours(), dateTime.getMinutes(), dateTime.getSeconds(), dateTime.getMilliseconds()))
         }
+
+        self.newGuid = function(){
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
     }
 
     var library;
@@ -58,6 +65,9 @@ libHandler = (function () {
         },
         toUtc: function(dateTime){
             return library.toUtc(dateTime);
+        },
+        newGuid: function(){
+            return library.newGuid();
         }
     }
 })();

@@ -93,11 +93,17 @@ app.get('/logout', function(req, res, next){
     });
 });
 
-app.get('/recoverPassword', function(req, res, next){
-    accountCtrl.recoverPassword(req.body.email, function(result){
+app.get('/requestRecoveryCode', function(req, res, next){
+    accountCtrl.requestRecoveryCode(req.body.email, function(result){
         lib.handleResponse(result, res);
     })
 })
+
+app.post('/recoverAccount', function(req, res, next){
+    accountCtrl.recoverAccount(req.body.email, req.body.recoveryCode, req.body.password, function(result){
+        lib.handleResponse(result, res);
+    });
+});
 
 /*::::::::::::::::::: End Routes ::::::::::::::::::*/
 

@@ -55,8 +55,43 @@ accountHandler = (function () {
             }
         }
 
-        self.recoverPassword = function(recipientEmail, callback){
-            emailHandler.send(recipientEmail, 'recoverPassword', callback);
+        self.requestRecoveryCode = function(email, callback){
+            userCtrl.getUserByEmail(email, function(user){
+                if(user){
+                    user.recoveryCode = lib.newGuid();
+                    var now = new Date();
+                    var recoveryCodeExpiration = new Date(now.setMinutes(now.getMinutes() + 10));
+                    user.recoveryCodeExpirationUtc = lib.toUtc(recoveryCodeExpiration);
+                    userCtrl.updateUser(user._id, user, function(result){
+                        emailHandler.send(email, 'requestRecoveryCode', user.recoveryCode, callback);
+                    })
+                } else{
+                    lib.handleResult({'statusCode': 200, 'message': 'Email sent.'}, callback);
+                }
+            })
+        }
+
+        self.recoverAccount = function(email, recoveryCode, newPassword, callback){
+            userCtrl.getUserByEmail(email, function(user){
+                if(user){
+                    if(recoveryCode === user.recoveryCode){
+                        if(new Date(user.recoveryCodeExpiration) > new Date()){
+                            bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+                                user.password = hash;
+								userCtrl.updateUser(user._id, user, function(result){
+                                    lib.handleResult({'statusCode': 200, 'user': {'userName': user.userName, 'userId': user._id.toString()}}, callback);
+                                });
+							});
+                        } else{
+                            lib.handleResult({'statusCode': 403, 'error': 'Expired recovery code.'}, callback);
+                        }
+                    } else{
+                        lib.handleResult({'statusCode': 403, 'error': 'Invalid recovery code.'}, callback);
+                    }
+                } else{
+                    lib.handleResult({'statusCode': 403, 'error': 'Not authorized.'}, callback);
+                }
+            })
         }
     }
 
@@ -75,8 +110,11 @@ accountHandler = (function () {
         logout: function(token, callback){
             return accountController.logout(token, callback);
         },
-        recoverPassword: function(recipientEmail, callback){
-            return accountController.recoverPassword(recipientEmail, callback);
+        requestRecoveryCode: function(email, callback){
+            return accountController.requestRecoveryCode(email, callback);
+        },
+        recoverAccount: function(email, recoveryCode, password, callback){
+            return accountController.recoverAccount(email, recoveryCode, password, callback);
         }
     }
 })();
