@@ -34,6 +34,17 @@ libHandler = (function () {
                 return v.toString(16);
             });
         }
+
+        self.getRandomLetters = function(length) {
+          var text = '';
+          var letterBank = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+          for (var i = 0; i < length; i++) {
+            text += letterBank.charAt(Math.floor(Math.random() * letterBank.length));
+          }
+
+          return text;
+        };
     }
 
     var library;
@@ -68,6 +79,9 @@ libHandler = (function () {
         },
         newGuid: function(){
             return library.newGuid();
+        },
+        getRandomLetters: function(length){
+            return library.getRandomLetters(length);
         }
     }
 })();

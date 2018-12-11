@@ -52,6 +52,20 @@ userHandler = (function () {
                 lib.handleResult(result, callback);
             })
         };
+
+        self.unsetFields = function(userId, fields, callback){
+            let unsetObj = {};
+            if(Array.isArray(fields)){
+                fields.forEach(field => {
+                    unsetObj[field] = '';
+                })
+            } else{
+                unsetObj[fields] = ''
+            }
+            db.unsetFields('User', {'_id': safeObjectId(userId)}, unsetObj, function(result){
+                lib.handleResult(result, callback);
+            })
+        }
     }
 
     var userController;
@@ -80,6 +94,9 @@ userHandler = (function () {
         },
         newUser: function(userName, password, email){
             return userController.newUser(userName, password, email);
+        },
+        unsetFields: function(userId, fields, callback){
+            return userController.unsetFields(userId, fields, callback);
         }
     }
 })();

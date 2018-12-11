@@ -78,6 +78,13 @@ var database = (function () {
             });
         }
 
+        this.unsetFields = function(collectionName, queryObj, unsetObj, callback){
+            let collection =  self.db.collection(collectionName);
+            collection.updateOne(queryObj, { $unset: unsetObj}, function(err, result){
+                if(callback !== undefined) callback(result);
+            });
+        }
+
         this.delete = function(collectionName, queryObj, callback){
             let collection = self.db.collection(collectionName);
             collection.deleteOne(queryObj, function(err, result){
@@ -116,6 +123,9 @@ var database = (function () {
         },
         deleteMany: function(collectionName, queryObj, callback){
             dbInstance.deleteMany(collectionName, queryObj, callback);
+        },
+        unsetFields: function(collectionName, queryObj, unsetObj, callback){
+            dbInstance.unsetFields(collectionName, queryObj, unsetObj, callback);
         }
     }
 })();

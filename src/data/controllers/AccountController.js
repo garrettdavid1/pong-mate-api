@@ -58,7 +58,7 @@ accountHandler = (function () {
         self.requestRecoveryCode = function(email, callback){
             userCtrl.getUserByEmail(email, function(user){
                 if(user){
-                    user.recoveryCode = lib.newGuid();
+                    user.recoveryCode = lib.getRandomLetters(10);
                     var now = new Date();
                     var recoveryCodeExpiration = new Date(now.setMinutes(now.getMinutes() + 10));
                     user.recoveryCodeExpirationUtc = lib.toUtc(recoveryCodeExpiration);
@@ -75,11 +75,17 @@ accountHandler = (function () {
             userCtrl.getUserByEmail(email, function(user){
                 if(user){
                     if(recoveryCode === user.recoveryCode){
-                        if(new Date(user.recoveryCodeExpiration) > new Date()){
+                        if(new Date(user.recoveryCodeExpirationUtc) > new Date()){
                             bcrypt.hash(newPassword, saltRounds, function(err, hash) {
                                 user.password = hash;
-								userCtrl.updateUser(user._id, user, function(result){
-                                    lib.handleResult({'statusCode': 200, 'user': {'userName': user.userName, 'userId': user._id.toString()}}, callback);
+                                delete user.recoveryCode;
+                                delete user.recoveryCodeExpirationUtc;
+
+                                var newUser = Object.assign({}, user);
+								userCtrl.updateUser(user._id, newUser, function(result){
+                                    userCtrl.unsetFields(user._id, ['recoveryCode', 'recoveryCodeExpirationUtc'], function(unsetResult){
+                                        lib.handleResult({'statusCode': 200, 'user': {'userName': newUser.userName, 'userId': newUser._id.toString()}}, callback);
+                                    })
                                 });
 							});
                         } else{
