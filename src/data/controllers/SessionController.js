@@ -2,7 +2,7 @@ sessionHandler = (function () {
     var SessionController = function (config) {
         var self = this;
         self.config = config;
-        self.numOfHoursValid = 24
+        self.numOfHoursValid = 24;
 
         newSession = function(userName, userId, token, dateTime){
             const createDateTimeUtc = lib.toUtc(dateTime);

@@ -11,19 +11,19 @@ tokenHandler = (function(){
                 return token;
         }
 
-        self.isTokenValid = function(token, sessionSecret, callback){
-            if(token.indexOf('bearer ') === 0){
+        self.isValidToken = function(token, sessionSecret, callback){
+            if(token.toLowerCase().indexOf('bearer ') === 0){
                 token = token.substring(7)
                 sessionCtrl.getSession(token, function(session){
                     if(session){
-                        userCtrl.getUser(session.userId, function(result){
-                            let isTokenValid = false;
+                        userCtrl.getUser(session.userId, function(user){
+                            let isValidToken = false;
                             if(user){
-                                const newToken = self.generateToken(user, session.createDateTimeUtc, sessionSecret);
+                                const newToken = self.generateToken(user, new Date(session.createDateTimeUtc).toUTCString(), sessionSecret);
                                 if(newToken === token && new Date(session.expireDateTimeUtc > new Date())){
-                                    isTokenValid = true;
+                                    isValidToken = true;
                                 }
-                                if(isTokenValid){
+                                if(isValidToken){
                                     lib.handleResult(true, callback)
                                 } else{
                                     lib.handleResult(false, callback)
@@ -50,8 +50,8 @@ tokenHandler = (function(){
         generateToken: function(user, dateTimeUtc, sessionSecret){
             return tokenController.generateToken(user, dateTimeUtc, sessionSecret);
         },
-        isTokenValid: function(token, sessionSecret, callback){
-            return tokenController.isTokenValid(token, sessionSecret, callback);
+        isValidToken: function(token, sessionSecret, callback){
+            return tokenController.isValidToken(token, sessionSecret, callback);
         }
     }
 })(); 

@@ -26,7 +26,7 @@ try{
         self.lib.init();
         self.sessionCtrl.init(config);
         self.userCtrl.init();
-        self.accountCtrl.init();
+        self.accountCtrl.init(config);
         self.tokenHandler.init();
         self.emailHandler.init();
     }
@@ -104,6 +104,12 @@ app.post('/recoverAccount', function(req, res, next){
         lib.handleResponse(result, res);
     });
 });
+
+app.post('/changePassword', function(req, res, next){
+    accountCtrl.changePassword(req.headers.authorization, req.body.oldPassword, req.body.newPassword, function(result){
+        lib.handleResponse(result, res);
+    })
+})
 
 /*::::::::::::::::::: End Routes ::::::::::::::::::*/
 
