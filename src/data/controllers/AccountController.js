@@ -7,25 +7,29 @@ accountHandler = (function () {
         self.config = config;
 
         self.registerUser = function(userName, password, email, callback){
-            if(isValidPassword(password)){
-                userCtrl.getUserByEmail(email, function (result) {
-                    if(result){
-                        lib.handleResult({'statusCode': 400, 'error': 'User already exists for this email address.'}, callback);
-                    } else{
-                        userCtrl.getUserByUserName(userName, function(result){
-                            if(result){
-                                lib.handleResult({'statusCode': 400, 'error': 'Username already exists. Please choose another.'}, callback);
-                            } else{
-                                bcrypt.hash(password, saltRounds, function(err, hash) {
-                                    var user = userCtrl.newUser(userName, hash, email);
-                                    userCtrl.createUser(user, callback);
-                                });
-                            }
-                        });
-                    }
-                });
+            if(isValidEmailAddress(email)){
+                if(isValidPassword(password)){
+                    userCtrl.getUserByEmail(email, function (result) {
+                        if(result){
+                            lib.handleResult({'statusCode': 400, 'error': 'User already exists for this email address.'}, callback);
+                        } else{
+                            userCtrl.getUserByUserName(userName, function(result){
+                                if(result){
+                                    lib.handleResult({'statusCode': 400, 'error': 'Username already exists. Please choose another.'}, callback);
+                                } else{
+                                    bcrypt.hash(password, saltRounds, function(err, hash) {
+                                        var user = userCtrl.newUser(userName, hash, email);
+                                        userCtrl.createUser(user, callback);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else{
+                    lib.handleResult({'statusCode':400, 'error': 'Password does not meet requirements.'}, callback);
+                }
             } else{
-                lib.handleResult({'statusCode':400, 'error': 'Password does not meet requirements.'}, callback);
+                lib.handleResult({'statusCode': 400, 'error': 'Invalid email address'}, callback);
             }
         };
 
@@ -105,39 +109,42 @@ accountHandler = (function () {
 
         self.changePassword = (token, oldPassword, newPassword, callback) => {
             if(isValidPassword(newPassword)){
-                tokenHandler.isValidToken(token, self.config.sessionSecret, function(result){
-                    if(result){
-                        sessionCtrl.getSession(token.substring(7), function(sessionResult){
-                            if(sessionResult){
-                                userCtrl.getUser(sessionResult.userId, function(user){
-                                    if(user){
-                                        bcrypt.compare(oldPassword, user.password, function (err, res) {
-                                            if (res === true) {
-                                                bcrypt.hash(newPassword, saltRounds, function(err, hash) {
-                                                    user.password = hash;
-                                                    userCtrl.updateUser(user._id, user, function(updateResult){
-                                                        sessionCtrl.createSession(user, callback);
-                                                    });
-                                                });
-                                            } else {
-                                                lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
-                                            }
-                                        });
-                                    } else{
-                                        lib.handleResult({'statusCode': 400, 'error': 'User not found.'}, callback);
-                                    }
-                                })
-                            } else{
-                                lib.handleResult({'statusCode': 403, 'error': 'Invalid Session'}, callback);
-                            }
-                        })
-                    } else{
-                        lib.handleResult({'statusCode': 403, 'error': 'Invalid Session'}, callback);
-                    }
+                userCtrl.getUserByToken(token, function(user){
+                    bcrypt.compare(oldPassword, user.password, function (err, res) {
+                        if (res === true) {
+                            bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+                                user.password = hash;
+                                userCtrl.updateUser(user._id, user, function(){
+                                    sessionCtrl.createSession(user, callback);
+                                });
+                            });
+                        } else {
+                            lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
+                        }
+                    });
                 })
             } else{
-                lib.handleResult({'statusCode':400, 'error': 'Password does not meet requirements.'}, callback);
+                lib.handleResult({'statusCode': 400, 'error': 'Password does not meet requirements.'}, callback);
             }
+        }
+
+        self.changeEmailAddress = (token, newEmailAddress, callback) => {
+            if(isValidEmailAddress(newEmailAddress)){
+                userCtrl.getUserByToken(token, function(user){
+                    user.email = newEmailAddress;
+                    userCtrl.updateUser(user._id, user, function(){
+                        lib.handleResult({'statusCode': 200, 'message': 'Updated email address.'}, callback);
+                    });
+                })
+            } else{
+                lib.handleResult({'statusCode': 400, 'error': 'Invalid email address'}, callback);
+            }
+            
+        }
+
+        isValidEmailAddress = (email) => {
+            const indexOfAtSymbol = email.indexOf('@');
+            return indexOfAtSymbol > 0 && email.indexOf('.com') > indexOfAtSymbol + 1;
         }
 
         isValidPassword = (password) => {
@@ -150,7 +157,7 @@ accountHandler = (function () {
             let uppercaseCharsReqMet = false;
             let numberReqMet = false;
             let specialCharsReqMet = false;
-            let lengthReqMet = password.length >= 8;
+            const lengthReqMet = password.length >= 8;
 
             if(lengthReqMet){
                 password.split('').forEach(character => {
@@ -198,6 +205,9 @@ accountHandler = (function () {
         },
         changePassword: function(token, oldPassword, newPassword, callback){
             return accountController.changePassword(token, oldPassword, newPassword, callback);
+        },
+        changeEmailAddress: function(token, newEmailAddress, callback){
+            return accountController.changeEmailAddress(token, newEmailAddress, callback);
         }
     }
 })();

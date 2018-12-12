@@ -25,7 +25,7 @@ try{
     function initControllers(){
         self.lib.init();
         self.sessionCtrl.init(config);
-        self.userCtrl.init();
+        self.userCtrl.init(config);
         self.accountCtrl.init(config);
         self.tokenHandler.init();
         self.emailHandler.init();
@@ -97,7 +97,7 @@ app.get('/requestRecoveryCode', function(req, res, next){
     accountCtrl.requestRecoveryCode(req.body.email, function(result){
         lib.handleResponse(result, res);
     })
-})
+});
 
 app.post('/recoverAccount', function(req, res, next){
     accountCtrl.recoverAccount(req.body.email, req.body.recoveryCode, req.body.password, function(result){
@@ -109,12 +109,18 @@ app.post('/changePassword', function(req, res, next){
     accountCtrl.changePassword(req.headers.authorization, req.body.oldPassword, req.body.newPassword, function(result){
         lib.handleResponse(result, res);
     })
-})
+});
+
+app.post('/changeEmailAddress', function(req, res, next){
+    accountCtrl.changeEmailAddress(req.headers.authorization, req.body.newEmail, function(result){
+        lib.handleResponse(result, res);
+    })
+});
 
 /*::::::::::::::::::: End Routes ::::::::::::::::::*/
 
 var server = app.listen(lib.port(), function(){
     var host = server.address().address;
     var port = server.address().port;
-    console.log('PongMate API running at http://%s:%s', host, port);
+    console.log('API running at http://%s:%s', host, port);
 });

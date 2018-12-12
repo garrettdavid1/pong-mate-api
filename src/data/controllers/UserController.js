@@ -1,6 +1,7 @@
 userHandler = (function () {
-    var UserController = function () {
+    var UserController = function (config) {
         var self = this;
+        self.config = config
 
         self.newUser = function(userName, password, email){
             var now = new Date();
@@ -27,6 +28,28 @@ userHandler = (function () {
         self.getUserByUserName = function(userName, callback){
             db.get('User', {'userName': userName}, null, function(result){
                 lib.handleResult(result[0], callback);
+            })
+        }
+
+        self.getUserByToken = function(token, callback){
+            tokenHandler.isValidToken(token, self.config.sessionSecret, function(isValidToken){
+                if(isValidToken){
+                    sessionCtrl.getSession(token.substring(7), function(sessionResult){
+                        if(sessionResult){
+                            userCtrl.getUser(sessionResult.userId, function(user){
+                                if(user){
+                                    lib.handleResult(user, callback);
+                                } else{
+                                    lib.handleResult({'statusCode': 400, 'error': 'User not found.'}, callback);
+                                }
+                            })
+                        } else{
+                            lib.handleResult({'statusCode': 403, 'error': 'Invalid Session'}, callback);
+                        }
+                    })
+                } else{
+                    lib.handleResult({'statusCode': 403, 'error': 'Invalid Session'}, callback);
+                }
             })
         }
 
@@ -71,14 +94,17 @@ userHandler = (function () {
     var userController;
 
     return {
-        init: function(){
-            userController = new UserController();
+        init: function(config){
+            userController = new UserController(config);
         },
         getUserByEmail: function(email, callback){
             return userController.getUserByEmail(email, callback);
         },
         getUserByUserName: function(userName, callback){
             return userController.getUserByUserName(userName, callback);
+        },
+        getUserByToken: function(token, callback){
+            return userController.getUserByToken(token, callback);
         },
         getUser: function(userId, callback){
             return userController.getUser(userId, callback);
