@@ -110,18 +110,23 @@ accountHandler = (function () {
         self.changePassword = (token, oldPassword, newPassword, callback) => {
             if(isValidPassword(newPassword)){
                 userCtrl.getUserByToken(token, function(user){
-                    bcrypt.compare(oldPassword, user.password, function (err, res) {
-                        if (res === true) {
-                            bcrypt.hash(newPassword, saltRounds, function(err, hash) {
-                                user.password = hash;
-                                userCtrl.updateUser(user._id, user, function(){
-                                    sessionCtrl.createSession(user, callback);
-                                });
-                            });
-                        } else {
-                            lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
-                        }
-                    });
+					if(user){
+						console.log(`user: ${JSON.stringify(user)}`)
+						bcrypt.compare(oldPassword, user.password, function (err, res) {
+							if (res === true) {
+								bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+									user.password = hash;
+									userCtrl.updateUser(user._id, user, function(){
+										sessionCtrl.createSession(user, callback);
+									});
+								});
+							} else {
+								lib.handleResult({'statusCode': 403, 'error': 'Incorrect email or password.' }, callback);
+							}
+						});
+					} else{
+						lib.handleResult({'statusCode': 400, 'error': 'Invalid session.' }, callback);
+					}
                 })
             } else{
                 lib.handleResult({'statusCode': 400, 'error': 'Password does not meet requirements.'}, callback);

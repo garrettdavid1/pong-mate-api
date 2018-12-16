@@ -20,6 +20,8 @@ tokenHandler = (function(){
                             let isValidToken = false;
                             if(user){
                                 const newToken = self.generateToken(user, new Date(session.createDateTimeUtc).toUTCString(), sessionSecret);
+                                // console.log(`token: ${token}`)
+                                // console.log(`newToken: ${newToken}`)
                                 if(newToken === token && new Date(session.expireDateTimeUtc > new Date())){
                                     isValidToken = true;
                                 }

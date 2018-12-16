@@ -48,7 +48,7 @@ userHandler = (function () {
                         }
                     })
                 } else{
-                    lib.handleResult({'statusCode': 403, 'error': 'Invalid Session'}, callback);
+                    lib.handleResult(false, callback);
                 }
             })
         }
