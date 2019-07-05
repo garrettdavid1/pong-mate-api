@@ -1,4 +1,6 @@
 var bcrypt = require('bcrypt');
+var CryptoJS = require('crypto-js');
+const axios = require('axios');
 const saltRounds = 10;
 
 accountHandler = (function () {
@@ -49,6 +51,55 @@ accountHandler = (function () {
                 }
                 
             });
+        }
+
+        function fbRegister(fbData, callback){
+            const password = `gen:${lib.newGuid()}:gen`;
+            bcrypt.hash(password, saltRounds, function(err, hash) {
+				var user = userCtrl.newFbUser(fbData, hash);
+				userCtrl.createUser(user, function(result) {
+					sessionCtrl.createSession(user, callback);
+				});
+            });
+        }
+
+        self.fbLogin = function(fbAccessToken, fbUserId, callback){
+            const appsecret_proof = CryptoJS.HmacSHA256(fbAccessToken, self.config.facebookAppSecret).toString();
+            let url = "https://graph.facebook.com/{fbUserId}?fields=id,name,email&access_token={fbAccessToken}";
+            url = url.replace('{fbUserId}', fbUserId);
+            url = url.replace('{fbAccessToken}', fbAccessToken);
+            axios.get(url)
+                .then(response => {
+                    const fbData = response.data;
+                    userCtrl.getUserByFbId(fbData.id, function(result){
+                        if(result){
+                            let user = result;
+                            if(!user.email && fbData.email){
+                                user.email = fbData.email;
+                            }
+
+                            sessionCtrl.createSession(user, callback);
+
+                        } else if(fbData.email){
+                            userCtrl.getUserByEmail(fbData.email, function(result){
+                                if(result){
+                                    let user = result;
+                                    user.fbUserId = fbData.id;
+
+                                    sessionCtrl.createSession(user, callback);
+                                    
+                                } else{
+                                    fbRegister(fbData, callback);
+                                }
+                            })
+                        } else{
+                            fbRegister(fbData, callback);
+                        }
+                    });
+                })
+                .catch(error => {
+                    lib.handleResult({'statusCode': 500, error}, callback);
+                });
         }
 
         self.logout = function(token, callback){
@@ -111,7 +162,6 @@ accountHandler = (function () {
             if(isValidPassword(newPassword)){
                 userCtrl.getUserByToken(token, function(user){
 					if(user){
-						console.log(`user: ${JSON.stringify(user)}`)
 						bcrypt.compare(oldPassword, user.password, function (err, res) {
 							if (res === true) {
 								bcrypt.hash(newPassword, saltRounds, function(err, hash) {
@@ -198,6 +248,9 @@ accountHandler = (function () {
         },
         login: function(email, password, callback){
             return accountController.login(email, password, callback);
+        },
+        fbLogin: function(fbAccessToken, fbUserId, callback){
+            return accountController.fbLogin(fbAccessToken, fbUserId, callback);
         },
         logout: function(token, callback){
             return accountController.logout(token, callback);

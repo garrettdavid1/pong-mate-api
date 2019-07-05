@@ -13,6 +13,15 @@ userHandler = (function () {
             };
         }
 
+        self.newFbUser = function(fbData, password){
+            const randEightDigits = Math.floor(Math.random() * (99999999 - 10000000)) + 10000000;
+            const username = `${fbData.name.replace(/\s/g, '')}_${randEightDigits}`;
+            const email = fbData.email || null;
+            let user = self.newUser(username, password, email);
+            user.fbUserId = fbData.id;
+            return user;
+        }
+
         self.getUser = function(userId, callback){
             db.get('User', {'_id': safeObjectId(userId)}, null, function(result){
                 lib.handleResult(result[0], callback);
@@ -50,6 +59,12 @@ userHandler = (function () {
                 } else{
                     lib.handleResult(false, callback);
                 }
+            })
+        }
+
+        self.getUserByFbId = function(fbUserId, callback){
+            db.get('User', {'fbUserId': fbUserId}, null, function(result){
+                lib.handleResult(result[0], callback);
             })
         }
 
@@ -106,6 +121,9 @@ userHandler = (function () {
         getUserByToken: function(token, callback){
             return userController.getUserByToken(token, callback);
         },
+        getUserByFbId: function(fbUserId, callback){
+            return userController.getUserByFbId(fbUserId, callback);
+        },
         getUser: function(userId, callback){
             return userController.getUser(userId, callback);
         },
@@ -120,6 +138,9 @@ userHandler = (function () {
         },
         newUser: function(userName, password, email){
             return userController.newUser(userName, password, email);
+        },
+        newFbUser: function(fbData, password){
+            return userController.newFbUser(fbData, password);
         },
         unsetFields: function(userId, fields, callback){
             return userController.unsetFields(userId, fields, callback);

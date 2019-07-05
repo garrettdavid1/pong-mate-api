@@ -82,9 +82,15 @@ app.post('/register', function(req, res, next){
 });
 
 app.post('/login', function(req, res, next){
-    accountCtrl.login(req.body.email, req.body.password, function(result){
-        lib.handleResponse(result, res);
-    });
+    if(req.body.email){
+        accountCtrl.login(req.body.email, req.body.password, function(result){
+            lib.handleResponse(result, res);
+        });
+    }else if(req.body.fbAccessToken){
+        accountCtrl.fbLogin(req.body.fbAccessToken, req.body.fbUserId, function(result){
+            lib.handleResponse(result, res);
+        });
+    }
 });
 
 app.get('/logout', function(req, res, next){
